@@ -181,3 +181,108 @@ function changeQuantity(listOfKanaps) {
     });
   }
 }
+
+//Tests with regex
+function checkData(data, regex, errorCounter, msg) {
+  if (!regex.test(data.value.trim())) {
+    document.getElementById(data.name + "ErrorMsg").innerHTML = msg;
+    errorCounter++;
+  } else {
+    document.getElementById(data.name + "ErrorMsg").innerHTML = "";
+  }
+  return errorCounter;
+}
+
+//Send the infos to the API
+function sendToAPI(data) {
+  fetch("http://localhost:3000/api/products/order", {
+    method: "POST",
+    headers: {
+      Accept: "application/json",
+      "Content-type": "application/json",
+    },
+    body: JSON.stringify(data),
+  })
+    .then((res) => res.json())
+    .then((value) => {
+      document.location.href =
+        "../html/confirmation.html?orderId=" + value.orderId;
+      localStorage.clear();
+    })
+    .catch((err) => {
+      //erreur
+    });
+  document.getElementsByClassName("cart__order__form")[0].reset();
+}
+
+//Validation of the contact form
+function validate(errorCounter) {
+  //DOM elements
+  var firstName = document.getElementById("firstName");
+  var lastName = document.getElementById("lastName");
+  var address = document.getElementById("address");
+  var city = document.getElementById("city");
+  var email = document.getElementById("email");
+  const email_regex =
+    /^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
+  const txt_regex = /^[A-Za-zÀ-ÖØ-öø-ÿ -]{2,}$/;
+  const txt_and_number_regex = /^[A-Za-zÀ-ÖØ-öø-ÿ, -']{2,}$/;
+  errorCounter = checkData(
+    firstName,
+    txt_regex,
+    errorCounter,
+    "Ce champ doit contenir au moins 2 caractères et uniquement des lettres."
+  );
+  errorCounter = checkData(
+    lastName,
+    txt_regex,
+    errorCounter,
+    "Ce champ doit contenir au moins 2 caractères et uniquement des lettres."
+  );
+  errorCounter = checkData(
+    city,
+    txt_regex,
+    errorCounter,
+    "Ce champ doit contenir au moins 2 caractères et uniquement des lettres."
+  );
+  errorCounter = checkData(
+    address,
+    txt_and_number_regex,
+    errorCounter,
+    "Ce champ doit contenir au moins 2 caractères (majuscules, minuscules, nombres)."
+  );
+  errorCounter = checkData(
+    email,
+    email_regex,
+    errorCounter,
+    "Ce champ doit contenir une adresse mail valide."
+  );
+
+  //Validation of the form if everything is ok
+  if (errorCounter === 0) {
+    let contact = {
+      firstName: firstName.value,
+      lastName: lastName.value,
+      address: address.value,
+      city: city.value,
+      email: email.value,
+    };
+    const fullProducts = getCart();
+    let products = [];
+    for (let i = 0; i < fullProducts.length; i++) {
+      products.push(fullProducts[i].ID);
+    }
+    let cartToSend = {
+      contact,
+      products,
+    };
+    sendToAPI(cartToSend);
+  }
+}
+
+//Listening the click on the "Commander !" button
+document.getElementById("order").addEventListener("click", function (event) {
+  event.preventDefault();
+  var errorCounter = 0;
+  validate(errorCounter);
+});
