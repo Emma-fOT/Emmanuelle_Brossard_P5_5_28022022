@@ -127,9 +127,9 @@ function updateCart(theProduct, newQuantity, listOfKanaps) {
   let currentCart = getCart();
   let thisProductToChange = currentCart.find((p) => p.ID === thisID && p.Color === thisColor);
   thisProductToChange.Quantity = newQuantity;
-  if (newQuantity == 0) {
+  if (newQuantity === 0) {
     updateDisplay(theProduct);
-    currentCart = currentCart.filter((p) => p.ID != thisID && p.Color != thisColor); //delete this entry in the localstorage
+    currentCart = currentCart.filter((p) => p.ID !== thisID || p.Color !== thisColor); //delete this entry in the localstorage
   }
   localStorage.setItem("myCart", JSON.stringify(currentCart));
   calculateTotals(listOfKanaps);
