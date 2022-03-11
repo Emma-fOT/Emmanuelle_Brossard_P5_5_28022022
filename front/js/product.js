@@ -1,19 +1,20 @@
 // "ShowProduct" reads the data from the json file to create the Kanap product page
 
-function showProduct(jsonObj) {
-  const MyProduct = jsonObj;
-
+function showProduct(MyProductJson) {
   const picture = document.createElement("img");
-  picture.src = `${MyProduct.imageUrl}`;
-  picture.alt = `${MyProduct.altTxt}`;
+  picture.src = `${MyProductJson.imageUrl}`;
+  picture.alt = `${MyProductJson.altTxt}`;
+
   const MyImageContainer = document.getElementsByClassName("item__img")[0];
   MyImageContainer.appendChild(picture);
 
-  document.getElementById("title").textContent = MyProduct.name;
-  document.getElementById("price").textContent = MyProduct.price;
-  document.getElementById("description").textContent = MyProduct.description;
+  document.getElementById("title").textContent = MyProductJson.name;
 
-  const MyColorOptions = MyProduct.colors;
+  document.getElementById("price").textContent = MyProductJson.price;
+
+  document.getElementById("description").textContent = MyProductJson.description;
+
+  const MyColorOptions = MyProductJson.colors;
   const MyColorMenu = document.getElementById("colors");
   for (let i = 0; i < MyColorOptions.length; i += 1) {
     const opt = document.createElement("option");
@@ -38,17 +39,9 @@ document.addEventListener("DOMContentLoaded", () => {
   const APILink = "http://localhost:3000/api/products/" + productID;
   //Link to the API (to one product, not to all the products)
   fetch(APILink)
-    .then(function (res) {
-      if (res.ok) {
-        return res.json();
-      }
-    })
-    .then(function (value) {
-      showProduct(value);
-    })
-    .catch(function (err) {
-      // Une erreur est survenue
-    });
+    .then((response) => response.json())
+    .then((value) => showProduct(value))
+    .catch((error) => alert("Problème au chargement de la page : \n" + error));
 });
 
 // Return the JSON of the current cart (local storage)
@@ -62,47 +55,61 @@ function getCart() {
   }
 }
 
-// Add some Kanap when clicking on "Add"
+// Add a product to the cart
 
-function addToCart() {
-  //Take the informations of the product to add
-  const productID = findID();
-  const productColor =
-    document.getElementById("colors").options[
-      document.getElementById("colors").selectedIndex
-    ].text;
-  const productQty = +document.getElementById("quantity").value;
-  let MyCartJson = {
-    ID: productID,
-    Color: productColor,
-    Quantity: productQty,
-  };
-  //Tests before adding to the cart
-  if (productQty === 0 || productColor === "--SVP, choisissez une couleur --") {
-    alert("Vous devez choisir une couleur et une quantité du produit.");
-    return;
-  }
-  //Take the infos of the current cart
-  let currentCart = getCart();
-  //Check if a product is already in the cart
-  let thisProduct = currentCart.find(
-    (p) => p.ID === productID && p.Color === productColor
-  );
+function addToCart(MyCartJson) {
+  let currentCart = getCart(); // Take the infos of the current cart
+  let thisProduct = currentCart.find((p) => p.ID === MyCartJson.ID && p.Color === MyCartJson.Color); // Check if a product is already in the cart
   if (thisProduct != undefined) {
-    //Increase the quantity
-    thisProduct.Quantity += productQty;
+    thisProduct.Quantity = +document.getElementById("quantity").value; // "+" is here to have a number
+    thisProduct.Quantity += MyCartJson.Quantity; // Increase the quantity
+    if (thisProduct.Quantity > 100) {
+      if (
+        window.confirm(
+          "Ce produit n'a pas été ajouté à votre panier.\nCe produit est déjà dans votre panier et la quantité totale dépasse la quantité maximale autorisée (100 unités par produit par couleur). Voulez-vous voir votre panier ?"
+        )
+      ) {
+        document.location.href = "../html/cart.html";
+        return; // We stop here, we don't add the product anyway because qty>100
+      } else {
+        return; // We stop here, we don't add the product anyway because qty>100
+      }
+    }
   } else {
-    //Create a new localStorage item
-    currentCart.push(MyCartJson);
+    currentCart.push(MyCartJson); // Create a new localStorage item
   }
-  //Save the new cart
-  localStorage.setItem("myCart", JSON.stringify(currentCart));
-  console.log(currentCart);
+  localStorage.setItem("myCart", JSON.stringify(currentCart)); // Save the new cart
+  if (window.confirm("Produit ajouté au panier.\nVoulez-vous aller aller au panier ?")) {
+    document.location.href = "../html/cart.html";
+  } else {
+    document.location.href = "../html/index.html";
+  }
 }
 
-function cleanCart() {
-  localStorage.clear();
-}
+// Listening the click on the "AddToCart" button and add some Kanap when clicking on it
 
-//Listening the click on the "AddToCart" button
-document.getElementById("addToCart").addEventListener("click", addToCart);
+document.getElementById("addToCart").addEventListener("click", function () {
+  try {
+    // Take the informations of the product to add
+    const productID = findID();
+    const productColor = document.getElementById("colors").options[document.getElementById("colors").selectedIndex].text;
+    const productQty = +document.getElementById("quantity").value;
+    let MyCartJson = {
+      ID: productID,
+      Color: productColor,
+      Quantity: productQty,
+    };
+    // Tests before adding to the cart
+    if ((productQty > 0) & (productQty <= 100)) {
+      if (productColor === "--SVP, choisissez une couleur --") {
+        alert("Vous devez choisir une couleur pour ce produit.");
+      } else {
+        addToCart(MyCartJson);
+      }
+    } else {
+      alert("La quantité souhaitée est incorrecte. Elle doit être comprise entre 1 et 100.");
+    }
+  } catch {
+    (error) => alert("Problème lors de l'ajout du produit au panier : \n" + error);
+  }
+});
