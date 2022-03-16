@@ -143,7 +143,7 @@ function listenChangeQuantity(listOfKanaps) {
     productsQuantities[i].addEventListener("change", function () {
       const newQuantity = this.value;
       if (newQuantity >= 0) {
-        if (newQuantity <= 101) {
+        if (newQuantity < 101) {
           updateCart(this, newQuantity, listOfKanaps);
         } else {
           alert("Attention, vous ne pouvez pas commander plus de 100 unités d'un même produit.");
@@ -207,8 +207,8 @@ function sendToAPI(data) {
   })
     .then((response) => response.json())
     .then((value) => {
-      document.location.href = "../html/confirmation.html?orderId=" + value.orderId;
       localStorage.clear();
+      document.location.href = "../html/confirmation.html?orderId=" + value.orderId;
     })
     .catch((error) => alert("Problème lors de l'envoi de la commande : \n" + error));
   document.getElementsByClassName("cart__order__form")[0].reset();
