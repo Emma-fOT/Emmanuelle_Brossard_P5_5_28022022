@@ -20,14 +20,14 @@ function calculateTotals(listOfKanaps) {
     if (productInTheList != undefined) {
       //Calculation of the total price
       totalPrice += productInTheList.price * totalCart[i].Quantity;
-      document.getElementById("totalPrice").textContent = totalPrice;
       //Calculation of the total quantity
       totalOfProducts += parseInt(totalCart[i].Quantity);
-      document.getElementById("totalQuantity").textContent = totalOfProducts;
     } else {
       alert("Problème dans le calcul du prix total ou de la quantité totale.\nUn produit n'est pas trouvé dans le catalogue.");
     }
   }
+  document.getElementById("totalPrice").textContent = totalPrice;
+  document.getElementById("totalQuantity").textContent = totalOfProducts;
 }
 
 // Display a container
