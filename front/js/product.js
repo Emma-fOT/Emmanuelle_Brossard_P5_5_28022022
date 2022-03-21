@@ -57,13 +57,13 @@ function getCart() {
 
 // Add a product to the cart
 
-function addToCart(MyCartJson) {
+function addToCart(MyProductToAddJson) {
   let currentCart = getCart(); // Take the infos of the current cart
-  let thisProduct = currentCart.find((p) => p.ID === MyCartJson.ID && p.Color === MyCartJson.Color); // Check if a product is already in the cart
+  let thisProduct = currentCart.find((p) => p.ID === MyProductToAddJson.ID && p.Color === MyProductToAddJson.Color); // Check if a product is already in the cart
   if (thisProduct != undefined) {
-    thisProduct.Quantity = +document.getElementById("quantity").value; // "+" is here to have a number
-    thisProduct.Quantity += MyCartJson.Quantity; // Increase the quantity
-    if (thisProduct.Quantity > 100) {
+    let NewQty = +thisProduct.Quantity; // "+" is here to have a number
+    NewQty += MyProductToAddJson.Quantity; // Increase the quantity
+    if (NewQty > 100) {
       if (
         window.confirm(
           "Ce produit n'a pas été ajouté à votre panier.\nCe produit est déjà dans votre panier et la quantité totale dépasse la quantité maximale autorisée (100 unités par produit par couleur). Voulez-vous voir votre panier ?"
@@ -74,9 +74,11 @@ function addToCart(MyCartJson) {
       } else {
         return; // We stop here, we don't add the product anyway because qty>100
       }
+    } else {
+      thisProduct.Quantity = NewQty;
     }
   } else {
-    currentCart.push(MyCartJson); // Create a new localStorage item
+    currentCart.push(MyProductToAddJson); // Create a new localStorage item
   }
   localStorage.setItem("myCart", JSON.stringify(currentCart)); // Save the new cart
   if (window.confirm("Produit ajouté au panier.\nVoulez-vous aller aller au panier ?")) {
@@ -94,7 +96,7 @@ document.getElementById("addToCart").addEventListener("click", function () {
     const productID = findID();
     const productColor = document.getElementById("colors").options[document.getElementById("colors").selectedIndex].text;
     const productQty = +document.getElementById("quantity").value;
-    let MyCartJson = {
+    let MyProductToAddJson = {
       ID: productID,
       Color: productColor,
       Quantity: productQty,
@@ -104,7 +106,7 @@ document.getElementById("addToCart").addEventListener("click", function () {
       if (productColor === "--SVP, choisissez une couleur --") {
         alert("Vous devez choisir une couleur pour ce produit.");
       } else {
-        addToCart(MyCartJson);
+        addToCart(MyProductToAddJson);
       }
     } else {
       alert("La quantité souhaitée est incorrecte. Elle doit être comprise entre 1 et 100.");
